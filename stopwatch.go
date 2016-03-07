@@ -10,11 +10,15 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"strings"
 	"time"
 )
 
+const Version string = "0.1"
+
 type Stopwatch struct {
-	Timers []Timer
+	Version string
+	Timers  []Timer
 }
 
 type Timer struct {
@@ -24,7 +28,7 @@ type Timer struct {
 
 func init() {
 	flag.Usage = func() {
-		fmt.Println("Usage:")
+		fmt.Printf("Usage for stopwatch version %s:\n", Version)
 		fmt.Println("stopwatch       # prints all existing stopwatches")
 		fmt.Println("stopwatch label # starts a stopwatch or stops a stopwatch with that name")
 		fmt.Println("")
@@ -78,7 +82,7 @@ func (t Timer) stop() {
 
 func newStopwatch() (*Stopwatch, error) {
 	if _, err := os.Stat(filepath()); os.IsNotExist(err) {
-		return &Stopwatch{}, nil
+		return &Stopwatch{Version: Version}, nil
 	}
 
 	body, err := ioutil.ReadFile(filepath())
@@ -89,6 +93,7 @@ func newStopwatch() (*Stopwatch, error) {
 
 	st := Stopwatch{}
 	err = json.Unmarshal(body, &st)
+	st.Version = Version
 
 	if err != nil {
 		return nil, err

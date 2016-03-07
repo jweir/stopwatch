@@ -20,14 +20,6 @@ Usage
 This was a quick 45 minute project to build a simple stop watch and scratch
 that itch.
 
-### TODO
-
-* Add a help feature
-* Version
-* Clean the code up
-* DONE
-
-
 ## LICENSE
 
 The MIT License (MIT)
