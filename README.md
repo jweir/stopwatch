@@ -4,14 +4,18 @@ Stopwatch is a very simple command line stopwatch.  It allows tracking many
 different labeled timers.  The stopwatches are stored in your home directory
 as `.stopwatch.json`.
 
+![](stopwatch.gif)
+
 Install
 
     go get github.com/jweir/stopwatch
 
 Usage
 
-    stopwatch # list all running stopwatches
-    stopwatch <label> # stops an existing stop watch, otherwise starts a new one
+    stopwatch          # list all running stopwatches
+    stopwatch <label>  # stops an existing stopwatch, otherwise starts a new one
+                       # label is the remainder of the line, i.e. it can include spaces
+    stopwatch -stopall # stops all existing stopwatches
 
 This was a quick 45 minute project to build a simple stop watch and scratch
 that itch.
