@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -21,12 +22,30 @@ type Timer struct {
 	Start time.Time
 }
 
+func init() {
+	flag.Usage = func() {
+		fmt.Println("Usage:")
+		fmt.Println("stopwatch       # prints all existing stopwatches")
+		fmt.Println("stopwatch label # starts a stopwatch or stops a stopwatch with that name")
+		fmt.Println("")
+		flag.PrintDefaults()
+	}
+}
+
 // There is no file locking, so two processed running at the same time could cause a problem.
 // I might also win the lottery.
 func main() {
 	st, err := newStopwatch()
 	if err != nil {
 		fmt.Printf("%s", err)
+		return
+	}
+
+	stopAllPtr := flag.Bool("stopall", false, "Stops all stopwatches")
+	flag.Parse()
+
+	if *stopAllPtr == true {
+		st.stopAll()
 		return
 	}
 
@@ -50,7 +69,11 @@ func main() {
 func (t Timer) toString() string {
 	d := time.Now().Sub(t.Start)
 	d = ((d + time.Second/2) / time.Second) * time.Second
-	return fmt.Sprintf("'%s' running: %s started: %s\n", t.Label, d, t.Start.Round(time.Second))
+	return fmt.Sprintf("%s %s (%s)\n", t.Label, d, t.Start.Round(time.Second))
+}
+
+func (t Timer) stop() {
+	fmt.Printf("stopped %s", t.toString())
 }
 
 func newStopwatch() (*Stopwatch, error) {
@@ -79,7 +102,7 @@ func (st *Stopwatch) start(label string) error {
 	st.Timers = append(st.Timers, t)
 	st.write()
 
-	fmt.Printf(t.toString())
+	fmt.Printf("started %s\n", label)
 	return nil
 }
 
@@ -96,8 +119,16 @@ func (st *Stopwatch) find(label string) (int, *Timer) {
 func (st *Stopwatch) stop(pos int) {
 	t := st.Timers[pos]
 	st.Timers = append(st.Timers[:pos], st.Timers[pos+1:]...)
+	t.stop()
 	st.write()
-	fmt.Printf("Stopped %s", t.toString())
+}
+
+func (st *Stopwatch) stopAll() {
+	for _, t := range st.Timers {
+		t.stop()
+	}
+	st.Timers = []Timer{}
+	st.write()
 }
 
 func (st *Stopwatch) list() {
@@ -111,7 +142,7 @@ func (st *Stopwatch) list() {
 }
 
 func (st *Stopwatch) write() error {
-	b, err := json.Marshal(st)
+	b, err := json.MarshalIndent(st, "", "  ")
 	if err != nil {
 		fmt.Printf("%s", err)
 		return err
