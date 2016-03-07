@@ -55,7 +55,7 @@ func main() {
 		return
 	}
 
-	label := os.Args[1]
+	label := strings.Join(os.Args[1:], " ")
 
 	i, _ := st.find(label)
 	if i >= 0 {
