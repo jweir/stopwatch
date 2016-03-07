@@ -14,21 +14,21 @@ import (
 	"time"
 )
 
-const Version string = "0.1"
+const version string = "0.1"
 
-type Stopwatch struct {
+type stopwatch struct {
 	Version string
-	Timers  []Timer
+	Timers  []timer
 }
 
-type Timer struct {
+type timer struct {
 	Label string
 	Start time.Time
 }
 
 func init() {
 	flag.Usage = func() {
-		fmt.Printf("Usage for stopwatch version %s:\n", Version)
+		fmt.Printf("Usage for stopwatch version %s:\n", version)
 		fmt.Println("stopwatch       # prints all existing stopwatches")
 		fmt.Println("stopwatch label # starts a stopwatch or stops a stopwatch with that name")
 		fmt.Println("")
@@ -70,19 +70,19 @@ func main() {
 	st.start(label)
 }
 
-func (t Timer) toString() string {
+func (t timer) toString() string {
 	d := time.Now().Sub(t.Start)
 	d = ((d + time.Second/2) / time.Second) * time.Second
 	return fmt.Sprintf("%s %s (%s)\n", t.Label, d, t.Start.Round(time.Second))
 }
 
-func (t Timer) stop() {
+func (t timer) stop() {
 	fmt.Printf("stopped %s", t.toString())
 }
 
-func newStopwatch() (*Stopwatch, error) {
+func newStopwatch() (*stopwatch, error) {
 	if _, err := os.Stat(filepath()); os.IsNotExist(err) {
-		return &Stopwatch{Version: Version}, nil
+		return &stopwatch{Version: version}, nil
 	}
 
 	body, err := ioutil.ReadFile(filepath())
@@ -91,9 +91,9 @@ func newStopwatch() (*Stopwatch, error) {
 		return nil, err
 	}
 
-	st := Stopwatch{}
+	st := stopwatch{}
 	err = json.Unmarshal(body, &st)
-	st.Version = Version
+	st.Version = version
 
 	if err != nil {
 		return nil, err
@@ -102,8 +102,8 @@ func newStopwatch() (*Stopwatch, error) {
 	return &st, err
 }
 
-func (st *Stopwatch) start(label string) error {
-	t := Timer{label, time.Now()}
+func (st *stopwatch) start(label string) error {
+	t := timer{label, time.Now()}
 	st.Timers = append(st.Timers, t)
 	st.write()
 
@@ -111,7 +111,7 @@ func (st *Stopwatch) start(label string) error {
 	return nil
 }
 
-func (st *Stopwatch) find(label string) (int, *Timer) {
+func (st *stopwatch) find(label string) (int, *timer) {
 	for i, t := range st.Timers {
 		if t.Label == label {
 			return i, &t
@@ -121,22 +121,22 @@ func (st *Stopwatch) find(label string) (int, *Timer) {
 	return -1, nil
 }
 
-func (st *Stopwatch) stop(pos int) {
+func (st *stopwatch) stop(pos int) {
 	t := st.Timers[pos]
 	st.Timers = append(st.Timers[:pos], st.Timers[pos+1:]...)
 	t.stop()
 	st.write()
 }
 
-func (st *Stopwatch) stopAll() {
+func (st *stopwatch) stopAll() {
 	for _, t := range st.Timers {
 		t.stop()
 	}
-	st.Timers = []Timer{}
+	st.Timers = []timer{}
 	st.write()
 }
 
-func (st *Stopwatch) list() {
+func (st *stopwatch) list() {
 	if len(st.Timers) == 0 {
 		fmt.Println("No stopwatches exist")
 	}
@@ -146,7 +146,7 @@ func (st *Stopwatch) list() {
 	}
 }
 
-func (st *Stopwatch) write() error {
+func (st *stopwatch) write() error {
 	b, err := json.MarshalIndent(st, "", "  ")
 	if err != nil {
 		fmt.Printf("%s", err)
