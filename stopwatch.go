@@ -49,7 +49,8 @@ func main() {
 
 func (t Timer) toString() string {
 	d := time.Now().Sub(t.Start)
-	return fmt.Sprintf("'%s' running: %s started: %s\n", t.Label, d, t.Start)
+	d = ((d + time.Second/2) / time.Second) * time.Second
+	return fmt.Sprintf("'%s' running: %s started: %s\n", t.Label, d, t.Start.Round(time.Second))
 }
 
 func newStopwatch() (*Stopwatch, error) {

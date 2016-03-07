@@ -18,10 +18,10 @@ that itch.
 
 ### TODO
 
-* Clean the code up
-* Format the timing
 * Add a help feature
 * Version
+* Clean the code up
+* DONE
 
 
 ## LICENSE
