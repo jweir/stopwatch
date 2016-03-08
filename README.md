@@ -6,11 +6,11 @@ as `.stopwatch.json`.
 
 ![](stopwatch.gif)
 
-Install
+### Install
 
     go get github.com/jweir/stopwatch
 
-Usage
+### Usage
 
     stopwatch          # list all running stopwatches
     stopwatch <label>  # stops an existing stopwatch, otherwise starts a new one

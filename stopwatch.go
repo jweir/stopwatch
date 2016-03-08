@@ -14,14 +14,14 @@ import (
 	"time"
 )
 
-const version string = "0.1"
+const version string = "0.2"
 
-type stopwatch struct {
-	Version string
-	Timers  []timer
+type app struct {
+	Version     string
+	Stopwatches []stopwatch
 }
 
-type timer struct {
+type stopwatch struct {
 	Label string
 	Start time.Time
 }
@@ -29,9 +29,9 @@ type timer struct {
 func init() {
 	flag.Usage = func() {
 		fmt.Printf("Usage for stopwatch version %s:\n", version)
-		fmt.Println("stopwatch       # prints all existing stopwatches")
-		fmt.Println("stopwatch label # starts a stopwatch or stops a stopwatch with that name")
-		fmt.Println("")
+		fmt.Println("   stopwatch       # prints all existing stopwatches")
+		fmt.Println("   stopwatch label # starts a stopwatch or stops a stopwatch with that name")
+		fmt.Println("\nFlags:")
 		flag.PrintDefaults()
 	}
 }
@@ -39,50 +39,52 @@ func init() {
 // There is no file locking, so two processed running at the same time could cause a problem.
 // I might also win the lottery.
 func main() {
-	st, err := newStopwatch()
+	a, err := load()
 	if err != nil {
 		fmt.Printf("%s", err)
 		return
 	}
 
-	stopAllPtr := flag.Bool("stopall", false, "Stops all stopwatches")
+	a.parseArgs()
+}
+
+func (a *app) parseArgs() {
+	stopAllPtr := flag.Bool("stopall", false, "Issues a stop command all stopwatches")
 	flag.Parse()
 
 	if *stopAllPtr == true {
-		st.stopAll()
+		a.stopAll()
 		return
 	}
 
-	l := len(os.Args)
-	if l < 2 {
-		st.list()
+	if flag.NArg() == 0 {
+		a.list()
 		return
 	}
 
-	label := strings.Join(os.Args[1:], " ")
+	label := strings.Join(flag.Args(), " ")
 
-	i, _ := st.find(label)
-	if i >= 0 {
-		st.stop(i)
+	if i := a.find(label); i >= 0 {
+		a.stop(i)
 		return
 	}
 
-	st.start(label)
+	a.start(label)
 }
 
-func (t timer) toString() string {
+func (t stopwatch) toString() string {
 	d := time.Now().Sub(t.Start)
 	d = ((d + time.Second/2) / time.Second) * time.Second
 	return fmt.Sprintf("%s %s (%s)\n", t.Label, d, t.Start.Round(time.Second))
 }
 
-func (t timer) stop() {
+func (t stopwatch) stop() {
 	fmt.Printf("stopped %s", t.toString())
 }
 
-func newStopwatch() (*stopwatch, error) {
+func load() (*app, error) {
 	if _, err := os.Stat(filepath()); os.IsNotExist(err) {
-		return &stopwatch{Version: version}, nil
+		return &app{Version: version}, nil
 	}
 
 	body, err := ioutil.ReadFile(filepath())
@@ -91,63 +93,62 @@ func newStopwatch() (*stopwatch, error) {
 		return nil, err
 	}
 
-	st := stopwatch{}
-	err = json.Unmarshal(body, &st)
-	st.Version = version
+	a := app{}
+	err = json.Unmarshal(body, &a)
+	a.Version = version
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &st, err
+	return &a, err
 }
 
-func (st *stopwatch) start(label string) error {
-	t := timer{label, time.Now()}
-	st.Timers = append(st.Timers, t)
-	st.write()
+func (a *app) start(label string) error {
+	t := stopwatch{label, time.Now()}
+	a.Stopwatches = append(a.Stopwatches, t)
+	a.save()
 
 	fmt.Printf("started %s\n", label)
 	return nil
 }
 
-func (st *stopwatch) find(label string) (int, *timer) {
-	for i, t := range st.Timers {
+func (a *app) find(label string) int {
+	for i, t := range a.Stopwatches {
 		if t.Label == label {
-			return i, &t
+			return i
 		}
 	}
 
-	return -1, nil
+	return -1
 }
 
-func (st *stopwatch) stop(pos int) {
-	t := st.Timers[pos]
-	st.Timers = append(st.Timers[:pos], st.Timers[pos+1:]...)
-	t.stop()
-	st.write()
+func (a *app) stop(pos int) {
+	a.Stopwatches[pos].stop()
+	a.Stopwatches = append(a.Stopwatches[:pos], a.Stopwatches[pos+1:]...)
+	a.save()
 }
 
-func (st *stopwatch) stopAll() {
-	for _, t := range st.Timers {
+func (a *app) stopAll() {
+	for _, t := range a.Stopwatches {
 		t.stop()
 	}
-	st.Timers = []timer{}
-	st.write()
+	a.Stopwatches = []stopwatch{}
+	a.save()
 }
 
-func (st *stopwatch) list() {
-	if len(st.Timers) == 0 {
+func (a *app) list() {
+	if len(a.Stopwatches) == 0 {
 		fmt.Println("No stopwatches exist")
 	}
 
-	for _, t := range st.Timers {
+	for _, t := range a.Stopwatches {
 		fmt.Printf(t.toString())
 	}
 }
 
-func (st *stopwatch) write() error {
-	b, err := json.MarshalIndent(st, "", "  ")
+func (a *app) save() error {
+	b, err := json.MarshalIndent(a, "", "  ")
 	if err != nil {
 		fmt.Printf("%s", err)
 		return err
