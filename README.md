@@ -1,8 +1,6 @@
 # stopwatch
 
-Stopwatch is a very simple command line stopwatch.  It allows tracking many
-different labeled timers.  The stopwatches are stored in your home directory
-as `.stopwatch.json`.
+Stopwatch is a command line tool to track the start and duration of named timers.  The data is stored in your home directory as `.stopwatch.json`.
 
 ![](stopwatch.gif)
 
