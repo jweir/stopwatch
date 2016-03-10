@@ -29,8 +29,11 @@ type stopwatch struct {
 func init() {
 	flag.Usage = func() {
 		fmt.Printf("Usage for stopwatch version %s:\n", version)
-		fmt.Println("   stopwatch       # prints all existing stopwatches")
-		fmt.Println("   stopwatch label # starts a stopwatch or stops a stopwatch with that name")
+		fmt.Println("  stopwatch")
+		fmt.Println("         Prints all existing stopwatches.")
+		fmt.Println("  stopwatch label...")
+		fmt.Println("         Starts a new stopwatch with the given label.")
+		fmt.Println("         Or stops a existing stopwatch with that label.")
 		fmt.Println("\nFlags:")
 		flag.PrintDefaults()
 	}
@@ -50,7 +53,18 @@ func main() {
 
 func (a *app) parseArgs() {
 	stopAllPtr := flag.Bool("stopall", false, "Issues a stop command all stopwatches")
+	promptPtr := flag.Bool("prompt", false, "Prints the label of the first of the stopwatch.\nPrints an empty string if there are no stopwatches.")
+
 	flag.Parse()
+
+	if *promptPtr == true {
+		if len(a.Stopwatches) > 0 {
+			fmt.Printf(a.Stopwatches[0].Label)
+		} else {
+			fmt.Print("")
+		}
+		return
+	}
 
 	if *stopAllPtr == true {
 		a.stopAll()

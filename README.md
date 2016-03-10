@@ -10,13 +10,24 @@ Stopwatch is a command line tool to track the start and duration of named timers
 
 ### Usage
 
-    stopwatch          # list all running stopwatches
-    stopwatch <label>  # stops an existing stopwatch, otherwise starts a new one
-                       # label is the remainder of the line, i.e. it can include spaces
-    stopwatch -stopall # stops all existing stopwatches
+````
+Usage for stopwatch version 0.2:
+  stopwatch
+         Prints all existing stopwatches.
+  stopwatch label...
+         Starts a new stopwatch with the given label.
+         Or stops a existing stopwatch with that label.
 
-This was a quick 45 minute project to build a simple stop watch and scratch
-that itch.
+Flags:
+  -prompt
+    	Prints the label of the first of the stopwatch.
+      Prints an empty string if there are no stopwatches.
+  -stopall
+    	Issues a stop command all stopwatches
+
+````
+
+This was a quick 45 minute project to build a simple stop watch and scratch that itch.
 
 ## LICENSE
 
